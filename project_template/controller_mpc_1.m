@@ -19,12 +19,12 @@ if isempty(param)
 end
 
 % evaluate control action by solving MPC problem
-[u_mpc, errorcode] = yalmip_optimizer();
+[u_mpc, errorcode] = yalmip_optimizer(T);
 if errorcode ~= 0
     warning('MPC1 infeasible');
 end
 
-p = u_mpc;
+p = u_mpc + param.p_sp;
 
 end
 
@@ -32,19 +32,15 @@ end
 function [param, yalmip_optimizer] = init(Q, R, N)
 % get basic controller parameters
 param = compute_controller_base_parameters;
-yalmip('clear');
-
 % implement your MPC using Yalmip here
 nx = size(param.A,1);
 nu = size(param.B,2);
 U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
 X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 T0 = sdpvar(nx,1,'full');
-
-X{1} = T0 - param.T_sp;
 objective = 0;
 constraints = [];
-% constraints = [T0 == T, X{1} == T0];
+constraints = [constraints, X{1} == T0 - param.T_sp];
 
 for k = 1:N-1
     constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
@@ -55,9 +51,10 @@ end
 
 % Task 10: get terminal cost
 [~, P_inf, ~] = dlqr(param.A, param.B, Q, R);
-l_f = norm(P_inf * X{N}, 1);
+l_f = X{N}' * P_inf * X{N};
 objective = objective + l_f;
+
 ops = sdpsettings('verbose', 0, 'solver', 'quadprog');
-yalmip_optimizer = optimizer(constraints, objective, ops, T0, [U{:}]);
+yalmip_optimizer = optimizer(constraints, objective, ops, T0, U{1});
 
 end

@@ -21,9 +21,9 @@ ylabel('Relative norm of steady state deviation');
 
 Q_idx = eye(3);
 Q_best = eye(3);
-for index = 1:n_samples
-    dT_best = 1e6;
+dT_best = 1e6;
 
+for index = 1:n_samples
     Q_idx(1,1) = randi([1,1e7]);
     Q_idx(2,2) = randi([1,1e7]);
     Q_idx(3,3) = randi([1,1e7]);
@@ -42,10 +42,11 @@ for index = 1:n_samples
         scatter(power_sum, dT_relative, 'green');
     end
     
-    if ~T_v
+    if ~T_v && ~p_v
         if power_sum <= 16
             if dT_relative < dT_best
                 dT_best = dT_relative;
+                power_best = power_sum;
                 Q_best = Q_idx;
             end
         end
@@ -56,4 +57,6 @@ for index = 1:n_samples
 end
 
 Q = Q_best;
+scatter(power_best, dT_best, 'black', 'filled');
+
 end
