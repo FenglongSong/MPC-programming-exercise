@@ -24,7 +24,7 @@ if errorcode ~= 0
     warning('MPC1 infeasible');
 end
 
-p = u_mpc;
+p = u_mpc + param.p_sp;
 
 end
 
@@ -40,6 +40,7 @@ X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 T0 = sdpvar(nx,1,'full');
 objective = 0;
 constraints = [];
+constraints = [constraints, X{1} == T0 - param.T_sp];
 
 for k = 1:N-1
     constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
@@ -48,12 +49,12 @@ for k = 1:N-1
     objective = objective + U{k}' * R * U{k} + X{k}' * Q * X{k};
 end
 
-% Task 10: get terminal cost
+% get terminal cost
 [~, P_inf, ~] = dlqr(param.A, param.B, Q, R);
-l_f = norm(P_inf * X{N}, 1);
+l_f = X{N}' * P_inf * X{N};
 objective = objective + l_f;
-constraints = [constraints, X{1} == T0 - param.T_sp];
-ops = sdpsettings('verbose', 0, 'solver', 'fmincon');
+
+ops = sdpsettings('verbose', 0, 'solver', 'quadprog');
 yalmip_optimizer = optimizer(constraints, objective, ops, T0, U{1});
 
 end
