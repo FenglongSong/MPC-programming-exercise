@@ -9,7 +9,7 @@
 % OUTPUT:
 %   p: Heating and cooling power, dimension (3,1)
 
-function p = controller_mpc_1(Q, R, T, N, ~)
+function p = controller_mpc_4(Q, R, T, N, ~)
 % controller variables
 persistent param yalmip_optimizer
 
@@ -37,22 +37,34 @@ nx = size(param.A,1);
 nu = size(param.B,2);
 U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
 X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
+E = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 T0 = sdpvar(nx,1,'full');
+
+% e = sdpvar(nx,1,'full');
+
+v = 10;
+S = eye(3);
+
+
 objective = 0;
 constraints = [];
 constraints = [constraints, X{1} == T0 - param.T_sp];
 
 for k = 1:N-1
     constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
-    constraints = [constraints, param.Xcons(:,1) <= X{k+1} <= param.Xcons(:,2)];
+    constraints = [constraints, param.Xcons(:,1) - E{k} <= X{k+1} <= param.Xcons(:,2) + E{k}];
     constraints = [constraints, param.Ucons(:,1) <= U{k} <= param.Ucons(:,2)];
-    objective = objective + U{k}' * R * U{k} + X{k}' * Q * X{k};
+    constraints = [constraints, E{k} >= zeros(3,1)];
+    objective = objective + U{k}'*R*U{k} + X{k}'*Q*X{k} + v*E{k} + E{k}'*S*E{k};
 end
 
 % get terminal cost
 [~, P_inf, ~] = dlqr(param.A, param.B, Q, R);
-l_f = X{N}' * P_inf * X{N};
-objective = objective + l_f;
+objective = objective + X{N}'*P_inf*X{N} + v*E{N} + E{N}'*S*E{N};
+
+% terminal set constraint
+[A_x, b_x] = compute_X_LQR(Q, R);
+constraints = [constraints, A_x * X{N} <= b_x];
 
 ops = sdpsettings('verbose', 0, 'solver', 'quadprog');
 yalmip_optimizer = optimizer(constraints, objective, ops, T0, U{1});

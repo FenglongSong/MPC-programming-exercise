@@ -10,7 +10,7 @@ param = compute_controller_base_parameters();
 T_sp = param.T_sp;
 T0_example = T_sp;
 figure; 
-[T,p,~,~,T_v,p_v] = simulate_building(T0_example);
+simulate_building(T0_example);
 
 
 %% Unconstrained optimal control
@@ -74,7 +74,8 @@ simulate_building(T0_2, @controller_mpc_3, Q_2, R, scen1, 1);
 
 %% Soft-constrained MPC
 disp('Soft-constrained MPC');
-
+figure;
+simulate_building(T0_1, @controller_mpc_4, Q_1, R, scen2, 1);
 % pause;
 
 
