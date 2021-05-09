@@ -20,36 +20,56 @@ if isempty(param)
 end
 
 % evaluate control action by solving MPC problem
-% [u_mpc,errorcode] = yalmip_optimizer(...,...);
-% if (errorcode ~= 0)
-%     warning('MPC5 infeasible');
-% end
-% p = ...;
+[u_mpc,errorcode] = yalmip_optimizer(T);
+if (errorcode ~= 0)
+    warning('MPC5 infeasible');
+end
+p = u_mpc + param.p_sp;
 end
 
 function [param, yalmip_optimizer] = init(Q,R,N)
 % get basic controller parameters
-% ...
+param = compute_controller_base_parameters;
+
 % get terminal cost
 % ...
 % get terminal set
 % ...
 % implement your MPC using Yalmip here
-% nx = size(param.A,1);
-% nu = size(param.B,2);
-% U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
-% X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
-% v = sdpvar(1,1,'full');
-% T0 = sdpvar(nx,1,'full');
-% d = ...;
-% objective = 0;
-% constraints = [...];
-% for k = 1:N-1
-%     constraints = [constraints,...];
-%     objective = objective + ...;
-% end
-% constraints = [constraints, ...];
-% objective = objective + ...;
-% ops = sdpsettings('verbose',0,'solver','quadprog');
-% yalmip_optimizer = optimizer(constraints,objective,ops,...,...);
+nx = size(param.A,1);
+nu = size(param.B,2);
+U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
+X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
+v = sdpvar(1,1,'full');
+T0 = sdpvar(nx,1,'full');
+EPS = sdpvar(repmat(nx,1,N),ones(1,N),'full');
+
+
+v = 1;
+S = eye(3);
+
+d = ...;
+    
+objective = 0;
+constraints = [];
+constraints = [constraints, X{1} == T0 - param.T_sp];
+for k = 1:N-1
+    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
+    constraints = [constraints, param.Xcons(:,1) - EPS{k} <= X{k+1} <= param.Xcons(:,2) + EPS{k}];
+    constraints = [constraints, param.Ucons(:,1) <= U{k} <= param.Ucons(:,2)];
+    constraints = [constraints, EPS{k} >= 0];
+    objective = objective + U{k}'*R*U{k} + X{k}'*Q*X{k} + v*norm(EPS{k},Inf) + EPS{k}'*S*EPS{k};
+end
+
+% get terminal cost
+[~, P_inf, ~] = dlqr(param.A, param.B, Q, R);
+objective = objective + X{N}'*P_inf*X{N} + v*norm(EPS{N},Inf) + EPS{N}'*S*EPS{N};
+
+% terminal set constraint
+[A_x, b_x] = compute_X_LQR(Q, R);
+constraints = [constraints, A_x * X{N} <= b_x];
+
+ops = sdpsettings('verbose', 0, 'solver', 'quadprog');
+yalmip_optimizer = optimizer(constraints, objective, ops, T0, U{1});
+
 end

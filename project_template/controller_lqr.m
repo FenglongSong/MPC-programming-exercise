@@ -15,14 +15,7 @@ persistent param;
 % initialize controller, if not done already
 if isempty(param)
     param = init(Q, R);
-%     param = init(eye(3), eye(3));
 end
-
-% Task 6:
-% compute control action
-% % [P_inf, ~, ~] = idare(param.A, param.B, Q, R);
-% F_inf = - (param.B'*P_inf*param.B + R) \ (param.B'*P_inf*param.A);
-% p = param.p_sp + F_inf * (T - param.T_sp);
 
 [Klqr,~,~] = dlqr(param.A, param.B, Q, R);
 p = param.p_sp - Klqr * (T - param.T_sp);

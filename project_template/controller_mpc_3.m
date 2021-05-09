@@ -21,7 +21,7 @@ end
 % evaluate control action by solving MPC problem
 [u_mpc, errorcode] = yalmip_optimizer(T);
 if errorcode ~= 0
-    warning('MPC1 infeasible');
+    warning('MPC3 infeasible');
 end
 
 p = u_mpc + param.p_sp;

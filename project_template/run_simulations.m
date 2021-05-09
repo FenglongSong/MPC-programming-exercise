@@ -69,13 +69,23 @@ simulate_building(T0_1, @controller_mpc_3, Q_1, R, scen1, 1);
 figure;
 simulate_building(T0_2, @controller_mpc_3, Q_2, R, scen1, 1);
 
+% Task 17: 
+figure;
+simulate_building(T0_1, @controller_mpc_3, Q_1, R, scen2, 1);
+
 % pause;
 
 
 %% Soft-constrained MPC
 disp('Soft-constrained MPC');
+
+% Task 18:
 figure;
 simulate_building(T0_1, @controller_mpc_4, Q_1, R, scen2, 1);
+
+% Task 19:
+figure;
+simulate_building(T0_1, @controller_mpc_4, Q_1, R, scen1, 1);
 % pause;
 
 
