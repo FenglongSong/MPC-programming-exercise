@@ -53,7 +53,7 @@ constraints = [constraints, X{1} == T0 - param.T_sp];
 
 for k = 1:N-1
     constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
-    constraints = [constraints, param.Xcons(:,1) - EPS{k} <= X{k+1} <= param.Xcons(:,2) + EPS{k}];
+    constraints = [constraints, param.Xcons(:,1) - EPS{k} <= X{k} <= param.Xcons(:,2) + EPS{k}];
     constraints = [constraints, param.Ucons(:,1) <= U{k} <= param.Ucons(:,2)];
     constraints = [constraints, EPS{k} >= 0];
     objective = objective + U{k}'*R*U{k} + X{k}'*Q*X{k} + v*norm(EPS{k},Inf) + EPS{k}'*S*EPS{k};

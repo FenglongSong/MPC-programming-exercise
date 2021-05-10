@@ -15,9 +15,11 @@ function p = controller_mpc_5(Q,R,T,N,d)
 persistent param yalmip_optimizer
 
 % initialize controller, if not done already
-if isempty(param)
-    [param, yalmip_optimizer] = init(Q,R,N);
-end
+% if isempty(param)
+%     [param, yalmip_optimizer] = init(Q,R,N,d);
+% end
+
+[param, yalmip_optimizer] = init(Q,R,N,d);
 
 % evaluate control action by solving MPC problem
 [u_mpc,errorcode] = yalmip_optimizer(T);
@@ -27,7 +29,7 @@ end
 p = u_mpc + param.p_sp;
 end
 
-function [param, yalmip_optimizer] = init(Q,R,N)
+function [param, yalmip_optimizer] = init(Q,R,N,d)
 % get basic controller parameters
 param = compute_controller_base_parameters;
 
@@ -44,17 +46,18 @@ v = sdpvar(1,1,'full');
 T0 = sdpvar(nx,1,'full');
 EPS = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 
-
 v = 1;
 S = eye(3);
 
-d = ...;
+% Tune the value of disturbance
+% d = zeros(3, N);
+disp(d(:,1));
     
 objective = 0;
 constraints = [];
 constraints = [constraints, X{1} == T0 - param.T_sp];
 for k = 1:N-1
-    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
+    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k} + d(:,k)];
     constraints = [constraints, param.Xcons(:,1) - EPS{k} <= X{k+1} <= param.Xcons(:,2) + EPS{k}];
     constraints = [constraints, param.Ucons(:,1) <= U{k} <= param.Ucons(:,2)];
     constraints = [constraints, EPS{k} >= 0];
