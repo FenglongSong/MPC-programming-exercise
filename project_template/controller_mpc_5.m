@@ -33,10 +33,6 @@ function [param, yalmip_optimizer] = init(Q,R,N,d)
 % get basic controller parameters
 param = compute_controller_base_parameters;
 
-% get terminal cost
-% ...
-% get terminal set
-% ...
 % implement your MPC using Yalmip here
 nx = size(param.A,1);
 nu = size(param.B,2);

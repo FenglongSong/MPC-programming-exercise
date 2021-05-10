@@ -23,9 +23,7 @@ end
 if errorcode ~= 0
     warning('MPC4 infeasible');
 end
-
 p = u_mpc + param.p_sp;
-
 end
 
 
@@ -41,15 +39,12 @@ X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 EPS = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 T0 = sdpvar(nx,1,'full');
 
-
 v = 1;
 S = eye(3);
-
 
 objective = 0;
 constraints = [];
 constraints = [constraints, X{1} == T0 - param.T_sp];
-
 
 for k = 1:N-1
     constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
