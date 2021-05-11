@@ -19,11 +19,11 @@ if isempty(param)
 end
 
 % evaluate control action by solving MPC problem
-% [u_mpc,errorcode] = yalmip_optimizer(...);
-% if (errorcode ~= 0)
-%     warning('MPC6 infeasible');
-% end
-% p = ...;
+[u_mpc,errorcode] = yalmip_optimizer(T);
+if (errorcode ~= 0)
+    warning('MPC6 infeasible');
+end
+p = u_mpc + param.p_sp;
 
 % observer update
 % ...
@@ -40,25 +40,37 @@ function [param, yalmip_optimizer] = init(Q,R,T,N)
 % get terminal set
 % ...
 % design disturbance observer
+L = [];
 % ...
 % init state and disturbance estimate variables
 % ...
 % implement your MPC using Yalmip here
-% nx = size(param.A,1);
-% nu = size(param.B,2);
-% U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
-% X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
-% T0 = sdpvar(nx,1,'full');
-% T_sp = ...;
-% p_sp = ...;
-% constraints = [...];
-% objective = ...;
-% for k = 1:N-1
-%     constraints = [constraints, ...];
-%     objective = objective + ...;
-% end
-% constraints = [constraints, ...];
-% objective = objective + ...;
-% ops = sdpsettings('verbose',0,'solver','quadprog');
-% yalmip_optimizer = optimizer(constraints,objective,ops,...,...);
+nx = size(param.A,1);
+nu = size(param.B,2);
+U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
+X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
+T0 = sdpvar(nx,1,'full');
+T_sp = ...;
+p_sp = ...;
+
+objective = 0;
+constraints = [];
+constraints = [constraints, X{1} == T0 - param.T_sp];
+for k = 1:N-1
+    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k} + d(:,k)];
+    constraints = [constraints, param.Xcons(:,1) <= X{k+1} <= param.Xcons(:,2)];
+    constraints = [constraints, param.Ucons(:,1) <= U{k} <= param.Ucons(:,2)];
+    objective = objective + U{k}'*R*U{k} + X{k}'*Q*X{k};
+end
+
+% get terminal cost
+[~, P_inf, ~] = dlqr(param.A, param.B, Q, R);
+objective = objective + X{N}'*P_inf*X{N};
+
+% terminal set constraint
+[A_x, b_x] = compute_X_LQR(Q, R);
+constraints = [constraints, A_x * X{N} <= b_x];
+
+ops = sdpsettings('verbose',0,'solver','quadprog');
+yalmip_optimizer = optimizer(constraints,objective,ops, T0, U{1});
 end

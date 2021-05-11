@@ -16,7 +16,7 @@ persistent param yalmip_optimizer
 
 % initialize controller, if not done already
 % if isempty(param)
-%     [param, yalmip_optimizer] = init(Q,R,N,d);
+%     [param, yalmip_optimizer] = init(Q,R,N);
 % end
 
 [param, yalmip_optimizer] = init(Q,R,N,d);
@@ -38,22 +38,20 @@ nx = size(param.A,1);
 nu = size(param.B,2);
 U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
 X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
-v = sdpvar(1,1,'full');
+% v = sdpvar(1,1,'full');
 T0 = sdpvar(nx,1,'full');
 EPS = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 
 v = 1;
 S = eye(3);
 
-% Tune the value of disturbance
-% d = zeros(3, N);
 disp(d(:,1));
     
 objective = 0;
 constraints = [];
 constraints = [constraints, X{1} == T0 - param.T_sp];
 for k = 1:N-1
-    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k} + d(:,k)];
+    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k} + param.Bd * d(:,k)];
     constraints = [constraints, param.Xcons(:,1) - EPS{k} <= X{k+1} <= param.Xcons(:,2) + EPS{k}];
     constraints = [constraints, param.Ucons(:,1) <= U{k} <= param.Ucons(:,2)];
     constraints = [constraints, EPS{k} >= 0];

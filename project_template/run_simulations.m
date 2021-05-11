@@ -9,7 +9,7 @@ load('system/parameters_scenarios.mat')
 param = compute_controller_base_parameters();
 T_sp = param.T_sp;
 T0_example = T_sp;
-figure; 
+figure(1); 
 simulate_building(T0_example);
 
 
@@ -85,22 +85,38 @@ simulate_building(T0_2, @controller_mpc_4, Q_2, R, scen2, 1);
 
 % Task 19:
 figure;
+simulate_building(T0_1, @controller_mpc_3, Q_1, R, scen1, 1);
+figure;
 simulate_building(T0_1, @controller_mpc_4, Q_1, R, scen1, 1);
 
 % Task 20:
 d = zeros(3, scen2.Nbar + 30);
-d(1,36:52) = -100;
-d(2,36:52) = 50;
-d(3,36:52) = 180;
+d(1,36:52) = -1e4;
+d(2,36:52) = 5e3;
+d(3,36:52) = 1.8e4;
+% d(1,1:90) = scen2.d_VC_scen;
+% d(2,1:90) = scen2.d_F1_scen;
+% d(3,1:90) = scen2.d_F2_scen;
 
 figure;
-simulate_building(T0_1, @controller_mpc_5, Q_2, R, scen2, 1, 30, d);
+simulate_building(T0_1, @controller_mpc_5, Q_1, R, scen2, 1, 30, d);
 
 % pause;
 
 
 %% Offset-free MPC
 disp('Offset-free MPC');
+
+% Task 21:
+A_aug = [param.A, param.Bd; zeros(3,3), eye(3)];
+B_aug = [param.B; zeros(3,3)];
+C_aug = [eye(3), zeros(3,3)];
+D_aug = zeros(3,3);
+
+% Task 22:
+L_x = zeros(3,3);
+L_d = zeros(3,3);
+L = [L_x; L_d];
 
 % pause;
 
