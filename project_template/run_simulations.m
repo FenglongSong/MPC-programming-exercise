@@ -60,10 +60,10 @@ disp('First MPC');
 % Task 11
 figure;
 clear controller_mpc_1;
-simulate_building(T0_1, @controller_mpc_1, Q_1, R, scen1, 1);
+[~,~,J_mpc1_T1] = simulate_building(T0_1, @controller_mpc_1, Q_1, R, scen1, 1);
 figure;
 clear controller_mpc_1;
-simulate_building(T0_2, @controller_mpc_1, Q_2, R, scen1, 1);
+[~,~,J_mpc1_T2] = simulate_building(T0_2, @controller_mpc_1, Q_2, R, scen1, 1);
 % pause;
 
 
@@ -73,18 +73,24 @@ disp('MPC with guarantees');
 % Task 13: terminal set X_f = {0}, no terminal cost
 figure;
 clear controller_mpc_2;
-simulate_building(T0_1, @controller_mpc_2, Q_1, R, scen1, 1);
+[~,~,J_mpc2_T1] = simulate_building(T0_1, @controller_mpc_2, Q_1, R, scen1, 1);
 figure;
 clear controller_mpc_2;
-simulate_building(T0_2, @controller_mpc_2, Q_2, R, scen1, 1);
+[~,~,J_mpc2_T2] = simulate_building(T0_2, @controller_mpc_2, Q_2, R, scen1, 1);
 
 % Task 14: terminal set X_f = X_LQR, with terminal cost
 figure;
 clear controller_mpc_3;
-simulate_building(T0_1, @controller_mpc_3, Q_1, R, scen1, 1);
+[~,~,J_mpc3_T1] = simulate_building(T0_1, @controller_mpc_3, Q_1, R, scen1, 1);
 figure;
 clear controller_mpc_3;
-simulate_building(T0_2, @controller_mpc_3, Q_2, R, scen1, 1);
+[~,~,J_mpc3_T2] = simulate_building(T0_2, @controller_mpc_3, Q_2, R, scen1, 1);
+
+% Task 15: Compare 3 mpc controllers
+disp('MPC controller 1:');
+print(J_mpc1_T1);
+print(J_mpc1_T2);
+
 
 % Task 17: 
 figure;
