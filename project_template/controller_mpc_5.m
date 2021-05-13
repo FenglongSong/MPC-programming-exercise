@@ -38,7 +38,6 @@ nx = size(param.A,1);
 nu = size(param.B,2);
 U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
 X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
-% v = sdpvar(1,1,'full');
 T0 = sdpvar(nx,1,'full');
 EPS = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 
