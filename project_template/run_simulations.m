@@ -7,18 +7,16 @@ load('system/parameters_scenarios.mat')
 
 %% Task 5:
 param = compute_controller_base_parameters();
-T_sp = param.T_sp;
-T0_example = T_sp;
 figure; 
-simulate_building(T0_example);
+simulate_building(param.T_sp);
 
 
 %% Unconstrained optimal control
 disp('Unconstraint optimal control');
 
 % Uncontrolled system
-T0_1 = T_sp + [-2.25; 1.75; 0.75];
-T0_2 = T_sp + [1.5; 2.75; -0.25];
+T0_1 = param.T_sp + [-2.25; 1.75; 0.75];
+T0_2 = param.T_sp + [1.5; 2.75; -0.25];
 
 % Tuning of LQR on first initial condition
 
@@ -129,10 +127,10 @@ simulate_building(T0_1, @controller_mpc_5, Q_1, R, scen2, 1, 30, d);
 disp('Offset-free MPC');
 
 % Task 21:
-A_aug = [param.A, param.Bd; zeros(3,3), eye(3)];
-B_aug = [param.B; zeros(3,3)];
-C_aug = [eye(3), zeros(3,3)];
-D_aug = zeros(3,3);
+% A_aug = [param.A, param.Bd; zeros(3,3), eye(3)];
+% B_aug = [param.B; zeros(3,3)];
+% C_aug = [eye(3), zeros(3,3)];
+% D_aug = zeros(3,3);
 
 % Task 23:
 figure;
