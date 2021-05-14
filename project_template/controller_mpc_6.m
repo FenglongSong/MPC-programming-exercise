@@ -11,7 +11,21 @@
 
 function p = controller_mpc_6(Q,R,T,N,~)
 % controller variables
-persistent param yalmip_optimizer
+persistent param yalmip_optimizer T_sp p_sp A_aug B_aug C_aug L Th dh
+h = [];
+% observer update
+if isempty(h)
+    h = [T; zeros(3,1)];
+end
+h = A_aug * h + B_aug * p + L * (T - C_aug * h);
+Th = h(1:3);
+dh = h(4:6);
+
+% set point update
+sp = [A - eye(3), B; C, zeros(3)] \ [-param.Bd * dh; param.b_ref];
+T_sp = sp(1:3);
+p_sp = sp(4:6);
+
 
 % initialize controller, if not done already
 if isempty(param)
@@ -23,16 +37,16 @@ end
 if (errorcode ~= 0)
     warning('MPC6 infeasible');
 end
-p = u_mpc; % p_sp has changed
+p = u_mpc + p_sp;
 
-% observer update
-% ...
-
-% set point update
-% ...
 end
 
+
+%% 
 function [param, yalmip_optimizer] = init(Q,R,T,N)
+
+persistent T_sp p_sp A_aug B_aug C_aug L Th dh
+
 % get basic controller parameters
 param = compute_controller_base_parameters;
 % get terminal cost
@@ -54,28 +68,26 @@ nu = size(param.B,2);
 U = sdpvar(repmat(nu,1,N-1),ones(1,N-1),'full');
 X = sdpvar(repmat(nx,1,N),ones(1,N),'full');
 T0 = sdpvar(nx,1,'full');
-d0 = sdpvar(nx,1,'full');
-T_sp = sdpvar(nx,1,'full');
-p_sp = sdpvar(nu,1,'full');
-
+% d0 = sdpvar(nx,1,'full');
 
 
 objective = 0;
 constraints = [];
 constraints = [constraints, X{1} == T0 - T_sp];
-constraints = [constraints, T_sp == param.A*T_sp + param.B*p_sp + param.Bd*d0];
+Xcons = param.Xcons + repmat(param.T_sp,1,2) - T_sp;
+Ucons = param.Xcons + repmat(param.p_sp,1,2) - p_sp;
+
 for k = 1:N-1
-    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k} + d0];
-    constraints = [constraints, param.Xcons(:,1)+param.T_sp <= X{k+1} <= param.Xcons(:,2)+param.T_sp];
-    constraints = [constraints, param.Ucons(:,1)+param.p_sp <= U{k} <= param.Ucons(:,2)+param.p_sp];
-%     objective = objective + U{k}'*R*U{k} + X{k}'*Q*X{k};
-    objective = objective + (U{k}-p_sp)'*R*(U{k}-p_sp) + (X{k}-T_sp)'*Q*(X{k}-T_sp);
+    constraints = [constraints, X{k+1} == param.A * X{k} + param.B * U{k}];
+    constraints = [constraints, Xcons(:,1) <= X{k+1} <= Xcons(:,2)];
+    constraints = [constraints, Ucons(:,1) <= U{k} <= Ucons(:,2)];
+    objective = objective + U{k}'*R*U{k} + X{k}'*Q*X{k};
 end
 
 
 % get terminal cost
 [~, P_inf, ~] = dlqr(param.A, param.B, Q, R);
-objective = objective + (X{N}-T_sp)'*P_inf*(X{N}-T_sp);
+objective = objective + X{N}'*P_inf*X{N};
 
 % terminal set constraint
 [A_x, b_x] = compute_X_LQR(Q, R);

@@ -86,11 +86,6 @@ figure;
 clear controller_mpc_3;
 [~,~,J_mpc3_T2] = simulate_building(T0_2, @controller_mpc_3, Q_2, R, scen1, 1);
 
-% Task 15: Compare 3 mpc controllers
-disp('MPC controller 1:');
-print(J_mpc1_T1);
-print(J_mpc1_T2);
-
 
 % Task 17: 
 figure;
@@ -118,16 +113,14 @@ simulate_building(T0_1, @controller_mpc_4, Q_1, R, scen1, 1);
 
 % Task 20:
 d = zeros(3, scen2.Nbar + 30);
-d(1,36:52) = -1e4;
-d(2,36:52) = 5e3;
-d(3,36:52) = 1.8e4;
-% d(1,1:90) = scen2.d_VC_scen;
-% d(2,1:90) = scen2.d_F1_scen;
-% d(3,1:90) = scen2.d_F2_scen;
+d(1,36:43) = -1.5e4;
+d(1,44:50) = -1e4;
+d(2,37:43) = 5.4e3;
+d(3,45:49) = 1.8e3;
 
-% figure;
-% clear controller_mpc_5;
-% simulate_building(T0_1, @controller_mpc_5, Q_1, R, scen2, 1, 30, d);
+figure;
+clear controller_mpc_5;
+simulate_building(T0_1, @controller_mpc_5, Q_1, R, scen2, 1, 30, d);
 
 % pause;
 
@@ -144,7 +137,7 @@ D_aug = zeros(3,3);
 % Task 23:
 figure;
 clear controller_mpc_6;
-simulate_building(T0_1, @controller_mpc_6, Q_1, R, scen1, 1);
+simulate_building(T0_1, @controller_mpc_6, Q_1, R, scen3, 1);
 
 % pause;
 

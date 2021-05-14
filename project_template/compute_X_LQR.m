@@ -28,9 +28,9 @@ function [A_x, b_x] = compute_X_LQR(Q, R)
     systemLQR.x.setConstraint = Xp;
     
     InvSet = systemLQR.invariantSet();
-    figure;
-    InvSet.plot(), alpha(0.25);
-    title('Resulting State Constraints under LQR Control'), xlabel('\Delta T_{VC}'), ylabel('\Delta T_{F1}'), zlabel('\Delta T_{F2}')
+%     figure;
+%     InvSet.plot(), alpha(0.25);
+%     title('Resulting State Constraints under LQR Control'), xlabel('\Delta T_{VC}'), ylabel('\Delta T_{F1}'), zlabel('\Delta T_{F2}')
     
     A_x = InvSet.A;
     b_x = InvSet.b;
