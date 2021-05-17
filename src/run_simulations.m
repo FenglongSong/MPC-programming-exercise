@@ -7,8 +7,8 @@ load('system/parameters_scenarios.mat')
 
 %% Task 5:
 param = compute_controller_base_parameters();
-figure; 
-simulate_building(param.T_sp);
+% figure; 
+% simulate_building(param.T_sp);
 
 
 %% Unconstrained optimal control
@@ -22,13 +22,13 @@ T0_2 = param.T_sp + [1.5; 2.75; -0.25];
 
 % Task 6: Tune LQR parameters
 clear controller_lqr;
-% [Q_1, R] = heuristic_LQR_tuning(2500, T0_1, T_sp, scen1);
+% [Q_1, R] = heuristic_LQR_tuning(2500, T0_1, param.T_sp, scen1);
 % Q_1 = [4109479,0,0; 0,2064982,0; 0,0,2076632];
 Q_1 = diag([4973679, 5427908, 4949349]);
 R = eye(3);
 
 clear controller_lqr;
-% [Q_2, R] = heuristic_LQR_tuning(2500, T0_2, T_sp, scen1);
+% [Q_2, R] = heuristic_LQR_tuning(2500, T0_2, param.T_sp, scen1);
 % Q_2 = [3618351,0,0; 0,912436,0; 0,0,452536];
 Q_2 = diag([5836090, 1342679, 3555303]);
 
@@ -48,8 +48,19 @@ simulate_building(T0_2, @controller_lqr, Q_2, R, scen1, 1);
 %% From LQR to MPC
 disp('First MPC');
 % Task 9: Invariant set
-% clear controller_lqr; compute_X_LQR(Q_1, R);
-% clear controller_lqr; compute_X_LQR(Q_2, R);
+close all;
+clear controller_lqr; compute_X_LQR(Q_1, R);
+delta_T01 = T0_1 - param.T_sp;
+% [-2.25;1.75;0.75]
+figure(1); hold on; 
+plot3(delta_T01(1),delta_T01(2),delta_T01(3),'k.','MarkerSize',30);
+
+
+close all;
+clear controller_lqr; compute_X_LQR(Q_2, R);
+delta_T02 = T0_2 - param.T_sp;
+figure(1); hold on; 
+plot3(delta_T02(1),delta_T02(2),delta_T02(3),'k.','MarkerSize',30);
 
 
 % Task 10: infinite horizon cost under LQR
@@ -99,7 +110,7 @@ disp('Soft-constrained MPC');
 % Task 18:
 figure;
 clear controller_mpc_4;
-simulate_building(T0_2, @controller_mpc_4, Q_2, R, scen2, 1);
+simulate_building(T0_1, @controller_mpc_4, Q_1, R, scen2, 1);
 
 % Task 19:
 figure;

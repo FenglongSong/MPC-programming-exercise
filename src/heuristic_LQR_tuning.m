@@ -42,7 +42,6 @@ for index = 1:n_samples
         scatter(power_sum, dT_relative, 'green');
     end
     
-%     if ~T_v && ~p_v
     if ~T_v
         if power_sum <= 16
             if dT_relative < dT_best
