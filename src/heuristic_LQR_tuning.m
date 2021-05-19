@@ -11,52 +11,51 @@
 
 function [Q, R] = heuristic_LQR_tuning(n_samples, T0, T_sp, scen)
 
-R = eye(3);
-
-figure(2); 
-% set(gcf, 'WindowStyle' ,'docked'); 
-grid on; hold on
-xlabel('Energy consumption [kWh]');
+% Initialize figure
+figure; set(gcf, 'WindowStyle' ,'docked'); grid on; hold on
+xlabel('Energy consumption [kWh]'); 
 ylabel('Relative norm of steady state deviation');
 
-Q_idx = eye(3);
+% Parameter Initial
+R = eye(3);
 Q_best = eye(3);
-dT_best = 1e6;
-
+power_best = Inf;
+dT_best = Inf;
+% Q Tuning for n_samples times
 for index = 1:n_samples
-    Q_idx(1,1) = randi([1,1e7]);
-    Q_idx(2,2) = randi([1,1e7]);
-    Q_idx(3,3) = randi([1,1e7]);
-    
-    clear controller_lqr
-    [T, p, ~, ~, T_v, p_v] = simulate_building(T0, @controller_lqr, Q_idx, R, scen, 0);
-    
-    dT_relative = norm(T_sp-T(:,15), 2) / norm(T_sp-T0, 2);
-    power_sum = sum(abs(p), 'all')/1000/60;
-    
-    if T_v == true
-        scatter(power_sum, dT_relative, 'red');
-    elseif p_v == true
-        scatter(power_sum, dT_relative, 'blue');
-    else
-        scatter(power_sum, dT_relative, 'green');
+    if mod(index, n_samples/10)==0
+        fprintf('LQR Tuning Processed %d percent\n', 100*index/n_samples);
     end
-    
+    % Random Q Simulation
+    Q_idx = [randi([1 10e6]), 0, 0;
+             0, randi([1 10e6]), 0;
+             0, 0, randi([1 10e6])];
+    clear controller_lqr;
+    [T, p, ~, ~, T_v, p_v] = simulate_building(T0, @controller_lqr, Q_idx, R, scen, 0);
+    % Simulation Evaluation
+    dT_relative = norm(T_sp - T(:, 15))/norm(T_sp - T0);
+    power_sum = sum(abs(p), 'all')/1000/60;
+    % Plot Evaluation
+    if T_v==true
+        scatter(power_sum, dT_relative, 50, 'red');
+    elseif p_v==true
+        scatter(power_sum, dT_relative, 50, 'blue');
+    else
+        scatter(power_sum, dT_relative, 50, 'green');
+    end
+    % Update Best Tuning Q
     if ~T_v
         if power_sum <= 16
             if dT_relative < dT_best
-                dT_best = dT_relative;
                 power_best = power_sum;
+                dT_best = dT_relative;
                 Q_best = Q_idx;
             end
         end
     end
-    
-    
-    
 end
 
 Q = Q_best;
-scatter(power_best, dT_best, 'black', 'filled');
+scatter(power_best, dT_best, 100, 'black', 'filled');
 
 end

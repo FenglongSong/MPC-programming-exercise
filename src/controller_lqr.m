@@ -17,13 +17,15 @@ if isempty(param)
     param = init(Q, R);
 end
 
-[Klqr,~,~] = dlqr(param.A, param.B, Q, R);
-p = param.p_sp - Klqr * (T - param.T_sp);
+% compute control action
+[Klqr, ~, ~] = dlqr(param.A, param.B, Q, R);
+p = param.p_sp - Klqr*(T-param.T_sp);
+
 end
 
 function param = init(Q, R)
 % get basic controller parameters
-param = compute_controller_base_parameters;
+param = compute_controller_base_parameters();
 % add additional parameters if necessary, e.g.
-% param.F = ...
+% param.F = ;
 end
